@@ -88,22 +88,20 @@ void LinePlot::store(QString filename)
 			ymax_ = maxVal + 0.01 * (maxVal - minVal);
 		}
 	}
-	bool ownsApp = false;
 
-	if (QCoreApplication::instance() == nullptr)
+	// the code needs an instance of GUI app to work, we make sure it will work even without one
+	QCoreApplication* app = QCoreApplication::instance();
+	if (app == nullptr || qobject_cast<QApplication*>(app) == nullptr)
 	{
-		qputenv("QT_QPA_PLATFORM", "offscreen");
-
+		qputenv("QT_QPA_PLATFORM", "offscreen"); // allows to run in a headless mode (i.e. inside CI, on the server, when running test in a terminal, etc.)
 		int argc = 0;
 		char** argv = nullptr;
 		new QApplication(argc, argv);
-		ownsApp = true;
 	}
 
-	// --- create chart ---
 	QChart* chart = new QChart();
 
-	// --- create axes ---
+	// create axes
 	QValueAxis* axisX = new QValueAxis();
 	if (!xlabel_.isEmpty()) axisX->setTitleText(xlabel_);
 	chart->addAxis(axisX, Qt::AlignBottom);
@@ -116,7 +114,7 @@ void LinePlot::store(QString filename)
 	}
 	chart->addAxis(axisY, Qt::AlignLeft);
 
-	// --- add series ---
+	// series of data points
 	for (const PlotLine& line : lines_)
 	{
 		QLineSeries* series = new QLineSeries();
@@ -132,9 +130,16 @@ void LinePlot::store(QString filename)
 		chart->addSeries(series);
 		series->attachAxis(axisX);
 		series->attachAxis(axisY);
+
+		// improves line smoothness (optional) to look very close to matplotlib
+		QPen pen = series->pen();
+		pen.setWidthF(1.5);
+		pen.setCapStyle(Qt::RoundCap);
+		pen.setJoinStyle(Qt::RoundJoin);
+		series->setPen(pen);
 	}
 
-	// --- title / legend logic (matches Python behavior) ---
+	// title and legend
 	if (lines_.count() == 1)
 	{
 		if (!lines_[0].label.isEmpty())
@@ -153,9 +158,14 @@ void LinePlot::store(QString filename)
 		chart->legend()->setFont(legendFont);
 	}
 
-	// --- render to image (no QPainter needed) ---
+	// image rendering
 	QChartView chartView(chart);
-	chartView.resize(600, 400); // matplotlib equivalent
+	chartView.resize(600, 400);
+
+	// antialiasing for smoother lines and text
+	chartView.setRenderHint(QPainter::Antialiasing, true);
+	chartView.setRenderHint(QPainter::TextAntialiasing, true);
+	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
 	QPixmap pixmap = chartView.grab();
 
