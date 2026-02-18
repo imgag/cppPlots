@@ -62,47 +62,19 @@ void BarPlot::store(QString filename)
 	QBarSeries* series = new QBarSeries();
 
 	// one QBarSet per bar for independent color
+
+	QBarSet* set = new QBarSet("");
+	set->setColor(Qt::blue);
 	for (int i = 0; i < bars_.size(); ++i)
 	{
-		// QBarSet* set = new QBarSet("");
-		QString legend_label = (!labels_.isEmpty() && i < labels_.size()) ? labels_[i] : "";
-
-		QBarSet* set = new QBarSet(legend_label);
-
-		// // one QBarSet per bar for independent color
-		// for (int i = 0; i < bars_.size(); ++i)
-		// {
-		// 	QString legend_label =
-		// 		(!labels_.isEmpty() && i < labels_.size()) ? labels_[i] : "";
-
-			// QBarSet* set = new QBarSet(legend_label);
-
-			// 🔥 CRITICAL: pad with zeros except own index
-			for (int j = 0; j < bars_.size(); ++j)
-			{
-				if (j == i)
-					*set << bars_[i];
-				else
-					*set << 0.0;
-			}
-
-			// if (!colors_.isEmpty() && i < colors_.size())
-			// 	set->setColor(matplotlibColorToQColor(colors_[i]));
-
-			// series->append(set);
-		// }
-
-
-		if (!colors_.isEmpty() && i < colors_.size())
-			set->setColor(matplotlibColorToQColor(colors_[i]));
-
+		*set << bars_[i];
 		series->append(set);
-
-
 	}
 
+
 	chart->addSeries(series);
-	chart->legend()->setAlignment(Qt::AlignRight);
+	// chart->legend()->setAlignment(Qt::AlignRight);
+	chart->legend()->hide();
 
 	// X axis categories
 	QBarCategoryAxis* axisX = new QBarCategoryAxis();
@@ -132,29 +104,9 @@ void BarPlot::store(QString filename)
 	chart->addAxis(axisY, Qt::AlignLeft);
 	series->attachAxis(axisY);
 
-	// legend from color_legend_
-	// if (!color_legend_.isEmpty())
-	// {
-	// 	chart->legend()->setVisible(true);
-	// 	chart->legend()->setAlignment(Qt::AlignRight);
 
-	// 	for (auto it = color_legend_.cbegin(); it != color_legend_.cend(); ++it)
-	// 	{
-	// 		QBarSet* legendSet = new QBarSet(it.value());
-	// 		//legendSet->append(0); // dummy
-	// 		legendSet->setColor(matplotlibColorToQColor(it.key()));
-
-	// 		QBarSeries* legendSeries = new QBarSeries();
-	// 		legendSeries->append(legendSet);
-	// 		chart->addSeries(legendSeries);
-	// 		legendSeries->attachAxis(axisX);
-	// 		legendSeries->attachAxis(axisY);
-	// 	}
-
-	// 	QFont lf = chart->legend()->font();
-	// 	lf.setPointSize(10);
-	// 	chart->legend()->setFont(lf);
-	// }
+	axisX->setGridLineVisible(false);
+	axisY->setGridLineVisible(false);
 
 	// render
 	QChartView chartView(chart);
