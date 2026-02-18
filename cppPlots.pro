@@ -10,7 +10,9 @@ INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
 SOURCES += \
+    BarPlot.cpp \
     LinePlot.cpp
 
-HEADERS += LinePlot.h
+HEADERS += LinePlot.h \
+    BarPlot.h
 	
