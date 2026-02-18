@@ -69,7 +69,29 @@ void BarPlot::store(QString filename)
 
 		QBarSet* set = new QBarSet(legend_label);
 
-		*set << bars_[i];
+		// // one QBarSet per bar for independent color
+		// for (int i = 0; i < bars_.size(); ++i)
+		// {
+		// 	QString legend_label =
+		// 		(!labels_.isEmpty() && i < labels_.size()) ? labels_[i] : "";
+
+			// QBarSet* set = new QBarSet(legend_label);
+
+			// 🔥 CRITICAL: pad with zeros except own index
+			for (int j = 0; j < bars_.size(); ++j)
+			{
+				if (j == i)
+					*set << bars_[i];
+				else
+					*set << 0.0;
+			}
+
+			// if (!colors_.isEmpty() && i < colors_.size())
+			// 	set->setColor(matplotlibColorToQColor(colors_[i]));
+
+			// series->append(set);
+		// }
+
 
 		if (!colors_.isEmpty() && i < colors_.size())
 			set->setColor(matplotlibColorToQColor(colors_[i]));
