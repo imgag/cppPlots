@@ -48,12 +48,13 @@ void BarPlot::store(QString filename)
 
 	// the code needs an instance of GUI app to work, we make sure it will work even without one
 	QCoreApplication* app = QCoreApplication::instance();
+	QApplication* test_app;
 	if (app == nullptr || qobject_cast<QApplication*>(app) == nullptr)
 	{
 		qputenv("QT_QPA_PLATFORM", "offscreen"); // allows to run in a headless mode (i.e. inside CI, on the server, when running test in a terminal, etc.)
 		int argc = 0;
 		char** argv = nullptr;
-		new QApplication(argc, argv);
+		test_app = new QApplication(argc, argv);
 	}
 
 	QChart* chart = new QChart();
@@ -125,7 +126,8 @@ void BarPlot::store(QString filename)
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 
 	delete chart;
-
+	delete test_app;
+	delete app;
 
 }
 
