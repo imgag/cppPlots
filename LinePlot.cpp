@@ -91,13 +91,17 @@ void LinePlot::store(QString filename)
 
 	// the code needs an instance of GUI app to work, we make sure it will work even without one
 	QCoreApplication* app = QCoreApplication::instance();
-	QApplication* test_app;
-	if (app == nullptr || qobject_cast<QApplication*>(app) == nullptr)
+
+	static int argc = 1;
+	static char arg0[] = "test";
+	static char* argv[] = { arg0, nullptr };
+
+	if (!qobject_cast<QApplication*>(app))
 	{
-		qputenv("QT_QPA_PLATFORM", "offscreen"); // allows to run in a headless mode (i.e. inside CI, on the server, when running test in a terminal, etc.)
-		int argc = 0;
-		char** argv = nullptr;
-		test_app = new QApplication(argc, argv);
+		qputenv("QT_QPA_PLATFORM", "offscreen");
+
+
+		new QApplication(argc, argv);
 	}
 
 	QChart* chart = new QChart();
@@ -170,14 +174,15 @@ void LinePlot::store(QString filename)
 
 	QPixmap pixmap = chartView.grab();
 
+
+	QApplication::processEvents();
+
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
 	{
 		THROW(ProgrammingException, "Could not save plot to file: " + filename);
 	}
 
-	delete chart; // prevent leak
-	delete test_app;
-	delete app;
+	//delete chart; // prevent leak
 }
 
 

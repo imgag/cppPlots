@@ -48,15 +48,18 @@ void BarPlot::store(QString filename)
 
 	// the code needs an instance of GUI app to work, we make sure it will work even without one
 	QCoreApplication* app = QCoreApplication::instance();
-	QApplication* test_app;
-	if (app == nullptr || qobject_cast<QApplication*>(app) == nullptr)
-	{
-		qputenv("QT_QPA_PLATFORM", "offscreen"); // allows to run in a headless mode (i.e. inside CI, on the server, when running test in a terminal, etc.)
-		int argc = 0;
-		char** argv = nullptr;
-		test_app = new QApplication(argc, argv);
-	}
 
+	static int argc = 1;
+	static char arg0[] = "test";
+	static char* argv[] = { arg0, nullptr };
+
+	if (!qobject_cast<QApplication*>(app))
+	{
+		qputenv("QT_QPA_PLATFORM", "offscreen");
+
+
+		new QApplication(argc, argv);
+	}
 	QChart* chart = new QChart();
 	// chart->setTitle(title_);
 
@@ -69,9 +72,10 @@ void BarPlot::store(QString filename)
 	for (int i = 0; i < bars_.size(); ++i)
 	{
 		*set << bars_[i];
-		series->append(set);
+
 	}
 
+	series->append(set);
 
 	chart->addSeries(series);
 	// chart->legend()->setAlignment(Qt::AlignRight);
@@ -117,7 +121,7 @@ void BarPlot::store(QString filename)
 	chartView.setRenderHint(QPainter::TextAntialiasing, true);
 	chartView.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-	chartView.show();
+	// chartView.show();
 	QApplication::processEvents();
 
 	QPixmap pixmap = chartView.grab();
@@ -125,10 +129,7 @@ void BarPlot::store(QString filename)
 	if (!pixmap.save(filename.replace("\\", "/"), "PNG"))
 		THROW(ProgrammingException, "Could not save bar plot to file: " + filename);
 
-	delete chart;
-	delete test_app;
-	delete app;
-
+	//delete chart;
 }
 
 QColor BarPlot::matplotlibColorToQColor(const QString &c)
